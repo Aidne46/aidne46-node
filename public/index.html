@@ -1,24 +1,31 @@
-<!DOCTYPE HTML>
-<html>
-    <head><link rel="stylesheet" href="/assets/main.css"></head>
-    <body>
-        <div class="wrapper">
-            <header>
-                <div id="intro">Al<span>loy</span> Pro<span>xy</span></div>
-                <a id="github" href="https://github.com/titaniumnetwork-dev/alloy"><i class="fab fa-github"></i>Fork on Github</a>
-            </header>
-            <div class="container">
-                <div class="form">
-                    <input placeholder="https://example.org/" id="url">
-                    <button id="initiate">Go</button>
-                </div>
-               <div class="info">
-                   <h1>How do I use this?</h1>
-                   <p>To begin evading web filters, enter a URL into the input box above such as "example.org" or "https://example.org" then click the "Go" button.
-                   </p>
-               </div> 
-            </div>
-        </div>   
-        <script src="/assets/main.js"></script>
-    </body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitHub page as PWA template</title>
+  <link rel="canonical" href="https://codepo8.github.io/github-page-pwa/" />
+  <link rel="manifest" href="/github-page-pwa/manifest.webmanifest">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+ 
+  <h1>GitHub page as PWA template</h1>
+  <p>
+    This is a PWA template for GitHub pages. 
+    Make sure to check the README at 
+    <a href="https://github.com/codepo8/github-page-pwa/">https://github.com/codepo8/github-page-pwa/</a> and 
+    to change the necessary settings to your needs.
+  </p>
+
+  <script>
+      if (navigator.serviceWorker) {
+        navigator.serviceWorker.register (
+          '/github-page-pwa/sw.js',
+          {scope: '/github-page-pwa/'}
+        )
+      }
+  </script>
+  <script src="js/app.js"></script>
+</body>
 </html>
