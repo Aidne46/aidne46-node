@@ -1,113 +1,183 @@
-# Github page as a PWA template
+[![Join the chat at https://gitter.im/copy/v86](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/copy/v86)
 
-This is a bare-bones example on how to turn an `index.html` document on GitHub and hosted as a GitHub Page into an installable Progressive Web App with offline caching.
+v86 emulates an x86-compatible CPU and hardware. Machine code is translated to
+WebAssembly modules at runtime in order to achieve decent performance. Here's a
+list of emulated hardware:
 
-As a reminder, you can host HTML, CSS and JavaScript files on GitHub as pages. For example, I have bare bones To Do app at https://github.com/codepo8/simple-to-do with an `index.html` document.
+- An x86-compatible CPU. The instruction set is around Pentium III level,
+  including full SSE2 support. Some features are missing, in particular:
+  - Task gates, far calls in protected mode
+  - Some 16 bit protected mode features
+  - Single stepping (trap flag, debug registers)
+  - Some exceptions, especially floating point and SSE
+  - Multicore
+  - 64-bit extensions
+- A floating point unit (FPU). Calculations are done using the Berkeley
+  SoftFloat library and therefore should be precise (but slow). Trigonometric
+  and log functions are emulated using 64-bit floats and may be less precise.
+  Not all FPU exceptions are supported.
+- A floppy disk controller (8272A).
+- An 8042 Keyboard Controller, PS2. With mouse support.
+- An 8254 Programmable Interval Timer (PIT).
+- An 8259 Programmable Interrupt Controller (PIC).
+- Partial APIC support.
+- A CMOS Real Time Clock (RTC).
+- A generic VGA card with SVGA support and Bochs VBE Extensions.
+- A PCI bus. This one is partly incomplete and not used by every device.
+- An IDE disk controller.
+- An NE2000 (8390) PCI network card.
+- A virtio filesystem.
+- A SoundBlaster 16 sound card.
 
-In the settings of this repository `simple-to-do`, I chose to publish the `main` branch as a GitHub page as shown in the following screenshot.
+## Demos
 
-![Settings of the repository to publish it as a page on GitHub](publish-as-page.png)
+[Arch Linux](https://copy.sh/v86/?profile=archlinux) —
+[Damn Small Linux](https://copy.sh/v86/?profile=dsl) —
+[Buildroot Linux](https://copy.sh/v86/?profile=buildroot) —
+[ReactOS](https://copy.sh/v86/?profile=reactos) —
+[Windows 2000](https://copy.sh/v86/?profile=windows2000) —
+[Windows 98](https://copy.sh/v86/?profile=windows98) —
+[Windows 95](https://copy.sh/v86/?profile=windows95) —
+[Windows 1.01](https://copy.sh/v86/?profile=windows1) —
+[MS-DOS](https://copy.sh/v86/?profile=msdos) —
+[FreeDOS](https://copy.sh/v86/?profile=freedos) —
+[FreeBSD](https://copy.sh/v86/?profile=freebsd) —
+[OpenBSD](https://copy.sh/v86/?profile=openbsd) —
+[9front](https://copy.sh/v86/?profile=9front) —
+[Haiku](https://copy.sh/v86/?profile=haiku) —
+[Oberon](https://copy.sh/v86/?profile=oberon) —
+[KolibriOS](https://copy.sh/v86/?profile=kolibrios) —
+[QNX](https://copy.sh/v86/?profile=qnx)
 
-This means that this app is now available at https://codepo8.github.io/simple-to-do/. Every time I publish to the `main` branch, it triggers an action and the page is generated.
+## Compatibility
 
-This here is a template repository that does not only publish the page, but also offers it as an installable app and shows the page when the user is offline.
+Here's an overview of the operating systems supported in v86:
 
-## Changing the index.html
+- Linux works pretty well. 64-bit kernels are not supported.
+  - Damn Small Linux (2.4 Kernel) works.
+  - All tested versions of TinyCore work.
+  - [Buildroot](https://buildroot.uclibc.org) can be used to build a minimal image.
+    [humphd/browser-vm](https://github.com/humphd/browser-vm) and
+    [darin755/browser-buildroot](https://github.com/Darin755/browser-buildroot) have some useful scripts for building one.
+  - Archlinux works. See [archlinux.md](docs/archlinux.md) for building an image.
+  - Debian works. An image can be built from a Dockerfile, see [tools/docker/debian/](tools/docker/debian/).
+  - Ubuntu up to 16.04 works.
+  - Alpine Linux works.
+- ReactOS works.
+- FreeDOS, Windows 1.01 and MS-DOS run very well.
+- KolibriOS works.
+- Haiku works.
+- Android x86 1.6-r2 works if one selects VESA mode at the boot prompt. Newer
+  versions may work if compiled without SSE3. See [#224](https://github.com/copy/v86/issues/224).
+- Windows 1, 3.0, 95, 98, ME and 2000 work. Other versions currently don't (see [#86](https://github.com/copy/v86/issues/86), [#208](https://github.com/copy/v86/issues/208)).
+  - In Windows 2000 and higher the PC type has to be changed from ACPI PC to Standard PC
+- Many hobby operating systems work.
+- 9front works.
+- Plan 9 doesn't work.
+- QNX works.
+- OS/2 doesn't work.
+- FreeBSD works.
+- OpenBSD works with a specific boot configuration. At the `boot>` prompt type
+  `boot -c`, then at the `UKC>` prompt `disable mpbios` and `exit`.
+- NetBSD works only with a custom kernel, see [#350](https://github.com/copy/v86/issues/350).
+- Older versions of SerenityOS work (1.0.gc460f4a is a known working version).
 
-The first thing you need to do change is the `index.html` document. You need two things for this. Your GitHub username, for example in this case `codepo8` and the name of the repository you host as a GitHub Page, in this case `github-page-pwa`.
+You can get some infos on the disk images here: https://github.com/copy/images.
 
-The current `index.html` has these settings already, and you need to change them accordingly.
+## How to build, run and embed?
 
-In the following example, each `codepo8` needs to become yours and `github-page-pwa` the name of your repository. Make sure to not remove any `/`, as they are crucial for this to work.
+You need:
 
-``` html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GitHub page as PWA template</title>
-  <link rel="canonical" href="https://codepo8.github.io/github-page-pwa/" />
-  <link rel="manifest" href="/github-page-pwa/manifest.webmanifest">
-</head>
-<body>
-  <h1>GitHub page as PWA template</h1>
-    …
-  <script>
-      if (navigator.serviceWorker) {
-        navigator.serviceWorker.register (
-          '/github-page-pwa/sw.js',
-          {scope: '/github-page-pwa/'}
-        )
-      }
-  </script>
-</body>
-</html>
+- make
+- Rust with the wasm32-unknown-unknown target
+- A version of clang compatible with Rust
+- java (for Closure Compiler, not necessary when using `debug.html`)
+- nodejs (a recent version is required, v16.11.1 is known to be working)
+- To run tests: nasm, gdb, qemu-system, gcc, libc-i386 and rustfmt
+
+See [tools/docker/test-image/Dockerfile](tools/docker/test-image/Dockerfile)
+for a full setup on Debian or
+[WSL](https://docs.microsoft.com/en-us/windows/wsl/install).
+
+- Run `make` to build the debug build (at `debug.html`).
+- Run `make all` to build the optimized build (at `index.html`).
+- ROM and disk images are loaded via XHR, so if you want to try out `index.html`
+  locally, make sure to serve it from a local webserver. You can use `make run`
+  to serve the files using Python's http module.
+- If you only want to embed v86 in a webpage you can use libv86.js. For usage,
+  check out the [examples](examples/). You can download it from the release section.
+
+### Alternatively, to build using docker
+
+- If you have docker installed, you can run the whole system inside a container.
+- See `tools/docker/exec` to find Dockerfile required for this.
+- You can run `docker build -f tools/docker/exec/Dockerfile -t v86:alpine-3.14 .` from the root directory to generate docker image.
+- Then you can simply run `docker run -it -p 8000:8000 v86:alpine-3.14` to start the server.
+- Check `localhost:8000` for hosted server.
+
+## Testing
+
+The disk images for testing are not included in this repository. You can
+download them directly from the website using:
+
+`wget -P images/ https://k.copy.sh/{linux.iso,linux4.iso,buildroot-bzimage.bin,openbsd-floppy.img,kolibri.img,windows101.img,os8.img,freedos722.img}`
+
+Run all tests: `make jshint rustfmt kvm-unit-test nasmtests nasmtests-force-jit expect-tests jitpagingtests qemutests rust-test tests`
+
+See [tests/Readme.md](tests/Readme.md) for more infos.
+
+## API examples
+
+- [Basic](examples/basic.html)
+- [Programatically using the serial terminal](examples/serial.html)
+- [A Lua interpreter](examples/lua.html)
+- [Two instances in one window](examples/two_instances.html)
+- [Saving and restoring emulator state](examples/save_restore.html)
+
+Using v86 for your own purposes is as easy as:
+
+```javascript
+var emulator = new V86Starter({
+    screen_container: document.getElementById("screen_container"),
+    bios: {
+        url: "../../bios/seabios.bin",
+    },
+    vga_bios: {
+        url: "../../bios/vgabios.bin",
+    },
+    cdrom: {
+        url: "../../images/linux.iso",
+    },
+    autostart: true,
+});
 ```
 
-## Changing the service worker to make your site available offline
+See [starter.js](src/browser/starter.js).
 
-The `sw.js` file is the ServiceWorker that defines which of the files in your application should become available offline. Again you need to change some settings to your needs.
+## License
 
-``` javascript
+v86 is distributed under the terms of the Simplified BSD License, see
+[LICENSE](LICENSE). The following third-party dependencies are included in the
+repository under their own licenses:
 
-// Change this to your repository name
-var GHPATH = '/github-page-pwa';
+- [`lib/softfloat/softfloat.c`](lib/softfloat/softfloat.c)
+- [`lib/zstd/zstddeclib.c`](lib/zstd/zstddeclib.c)
+- [`tests/kvm-unit-tests/`](tests/kvm-unit-tests)
+- [`tests/qemutests/`](tests/qemutests)
 
-// Choose a different app prefix name
-var APP_PREFIX = 'gppwa_';
+## Credits
 
-// The version of the cache. Every time you change any of the files
-// you need to change this version (version_01, version_02…). 
-// If you don't change the version, the service worker will give your
-// users the old files!
-var VERSION = 'version_00';
+- CPU test cases via [QEMU](https://wiki.qemu.org/Main_Page)
+- More tests via [kvm-unit-tests](https://www.linux-kvm.org/page/KVM-unit-tests)
+- [zstd](https://github.com/facebook/zstd) support is included for better compression of state images
+- [Berkeley SoftFloat](http://www.jhauser.us/arithmetic/SoftFloat.html) is included to precisely emulate 80-bit floating point numbers
+- [The jor1k project](https://github.com/s-macke/jor1k) for 9p, filesystem and uart drivers
+- [WinWorld](https://winworldpc.com/) sources of some old operating systems
 
-// The files to make available for offline use. make sure to add 
-// others to this list
-var URLS = [    
-  `${GHPATH}/`,
-  `${GHPATH}/index.html`,
-  `${GHPATH}/css/styles.css`,
-  `${GHPATH}/js/app.js`
-]
-```
+## More questions?
 
-Next, you may want to make this page installable as an app.
+Shoot me an email to `copy@copy.sh`. Please report bugs on GitHub.
 
-## Changing the manifest to make your app installable
+## Author
 
-The `manifest.webmanifest` file defines the name and look of the GitHub Page as an installable application. You need to change the names, description, URLs and link to the icon of the application to your needs. I added comments here as to what is what.
-
-``` javascript
-{
-  // Name of the app and short name in case there isn't enough space
-  "name": "Github Page PWA",
-  "short_name": "GPPWA",
-  // Description what your app is
-  "description": "Github Page as a Progressive Web App",
-
-  // Scope and start URL - these need to change to yours
-  "scope": "/github-page-pwa/",
-  "start_url": "/github-page-pwa/",
-
-  // colours of the app as displayed in the installer
-  "background_color": "#ffffff",
-  "theme_color": "#ffffff",
-
-  // Display of the app. 
-  //This could be "standalone", "fullscreen", "minimal-ui" or "browser"
-  "display": "standalone", 
-  
-  // The possible icons to display. Make sure to change the src URL,
-  // the type and the size to your needs. If the size isn't correct, 
-  // you may not be able to install the app. 
-  "icons": [
-      {
-        "src": "/github-page-pwa/img/icon.png",
-        "type": "image/png",
-        "sizes": "700x700"
-      }
-  ]
-}
-```
+Fabian Hemmer (https://copy.sh/, `copy@copy.sh`)
